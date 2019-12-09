@@ -1,0 +1,25 @@
+{
+  "name": "employeetracker",
+  "version": "1.0.0",
+  "description": "**Employee Tracker**",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rlgerma92/employeeTracker.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mysql": "2.17.1",
+    "inquirer": "7.0.0",
+    "console.table": "0.10.0",
+    "sequelize": "5.21.2"
+  },
+  "bugs": {
+    "url": "https://github.com/rlgerma92/employeeTracker/issues"
+  },
+  "homepage": "https://github.com/rlgerma92/employeeTracker#readme"
+}
