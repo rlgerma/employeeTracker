@@ -13,10 +13,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "mysql": "2.17.1",
-    "inquirer": "7.0.0",
     "console.table": "0.10.0",
-    "sequelize": "5.21.2"
+    "inquirer": "7.0.0",
+    "mysql": "2.17.1",
+    "nodemon": "^2.0.1",
+    "sequelize": "5.21.2",
+    "ascii-art": "2.4.0"
   },
   "bugs": {
     "url": "https://github.com/rlgerma92/employeeTracker/issues"
