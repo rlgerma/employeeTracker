@@ -2,6 +2,7 @@ const fs = require('fs');
 const mysql = require('mysql');
 const inquirer = require('inquirer');
 const cTable = require('console.table');
+const echo = require('node-echo');
 
 const connection = mysql.createConnection({
   host: "localhost",
@@ -15,11 +16,21 @@ connection.connect(function(err) {
   if (err) throw err;
   runSearch();
 });
-
-console.log("-----------EMPLOYEE TRACKER-------------");
+echo ("                                                                                                                                                                             ");
+echo ("                                                                                                                                                                             ");
+echo (":::::::::: ::::    ::::  :::::::::  :::        ::::::::  :::   ::: :::::::::: ::::::::::      ::::::::::: :::::::::      :::      ::::::::  :::    ::: :::::::::: :::::::::  ");
+echo (":+:        +:+:+: :+:+:+ :+:    :+: :+:       :+:    :+: :+:   :+: :+:        :+:                 :+:     :+:    :+:   :+: :+:   :+:    :+: :+:   :+:  :+:        :+:    :+: ");
+echo ("+:+        +:+ +:+:+ +:+ +:+    +:+ +:+       +:+    +:+  +:+ +:+  +:+        +:+                 +:+     +:+    +:+  +:+   +:+  +:+        +:+  +:+   +:+        +:+    +:+ ");
+echo ("+#++:++#   +#+  +:+  +#+ +#++:++#+  +#+       +#+    +:+   +#++:   +#++:++#   +#++:++#            +#+     +#++:++#:  +#++:++#++: +#+        +#++:++    +#++:++#   +#++:++#:  ");
+echo ("+#+        +#+       +#+ +#+        +#+       +#+    +#+    +#+    +#+        +#+                 +#+     +#+    +#+ +#+     +#+ +#+        +#+  +#+   +#+        +#+    +#+ ");
+echo ("#+#        #+#       #+# #+#        #+#       #+#    #+#    #+#    #+#        #+#                 #+#     #+#    #+# #+#     #+# #+#    #+# #+#   #+#  #+#        #+#    #+# ");
+echo ("########## ###       ### ###        ########## ########     ###    ########## ##########          ###     ###    ### ###     ###  ########  ###    ### ########## ###    ### ");
+echo ("                                                                                                                                                                             ");
+echo ("                                                                                                                                                                     ver 1.0 ");
 const runSearch = () => {
   inquirer
-    .prompt({
+    .prompt([
+    {
       type: "list",
       name: "options",
       message: "What would you like to do?",
@@ -32,10 +43,11 @@ const runSearch = () => {
         "Update Employee Role",
         "Update Employee Manager",
         "exit"
-      ]
-    })
-    .then(function(answer) {
-      switch (answer.action) {
+      ],
+      name:"answer"
+    }
+  ]).then(function(action) {
+      switch (action.answer) {
         case "View all employees":
           employeeView();
           break;
@@ -44,7 +56,7 @@ const runSearch = () => {
           departmentView();
           break;
 
-        case "View all employees by manager":
+        case "View all employees by Manager":
           managerView();
           break;
 
@@ -60,7 +72,7 @@ const runSearch = () => {
           employeeUpdate();
           break;
 
-        case "Update Employee Manager":
+        case "Update Manager":
           employeeManager();
           break;
 
@@ -70,7 +82,47 @@ const runSearch = () => {
       }
     });
 };
-const employeeView = () => {
+
+const menu = () => {
+  inquirer
+  .prompt([
+    {
+    type: "list",
+    name: "options",
+    message: "--------------------------------------",
+    choices: [
+      "Run Again?",
+      "         ",
+      "Main Menu",
+      "Exit"
+    ],
+    name:"menuResponse"
+   }
+  ]).then({function(action){
+    switch(action.menuResponse) {
+      // is this what callback hell is?
+      case "Run Again?":
+        runSearch(answer);
+        break;
+
+      case "         ":
+        console.log("");
+        break;  
+      
+      case "Main Menu":
+        runSearch();
+        break;
+
+      case "Exit":
+      connection.end();
+      console.log("Thanks for using Employee Tracker, Have a nice day!");
+      break;
+    }
+  }
+  })
+}
+
+const employeeView = (inputs = []) => {
   inquirer
     .prompt({
       name: "employeeView",
@@ -78,11 +130,13 @@ const employeeView = () => {
       message: "Enter Employee last name to begin search"
     })
     .then(function(answer) {
-      let query = "SELECT * first_name, last_name, id FROM employee WHERE ?";
+      let query = "SELECT first_name, last_name, id FROM employee WHERE ?";
       connection.query(query, { last_name: answer.employeeView }, function(err,res
-      ) {
+      ){
+        if(err) throw err;
+
         for (var i = 0; i < res.length; i++) {
-          console.log(
+          console.table(
             "First Name: " +
               res[i].first_name +
               " || Last name: " +
@@ -91,12 +145,12 @@ const employeeView = () => {
               res[i].id
           );
         }
-        runSearch();
+        menu();
       });
     });
 }
 const departmentView = () => {
-  let query = "SELECT name FROM department";
+  let query = "SELECT dept_name FROM department";
   connection.query(query, function(err, res) {
     for (var i = 0; i < res.length; i++) {
       console.log(res[i].name);
@@ -106,7 +160,7 @@ const departmentView = () => {
 }
 const managerView = () => {
   let query =
-    "SELECT id, first_name, last_name FROM Employee WHERE id IN (SELECT manager_id FROM employee WHERE manager_id IS NOT NULL)";
+    "SELECT id, first_name, last_name FROM employee WHERE id IN (SELECT mgr_id FROM employee WHERE mgr_id IS NOT NULL)";
   connection.query(query, function(err, res) {
     for (var i = 0; i < res.length; i++) {
       console.log(
