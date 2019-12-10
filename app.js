@@ -14,8 +14,9 @@ const connection = mysql.createConnection({
 
 connection.connect(function(err) {
   if (err) throw err;
-  runSearch();
-});
+  empTrack();
+}); 
+// ridiculous amount of code for an app title that under uses use an npm package, which has a sole purpose to display txt art goes here
 echo ("                                                                                                                                                                             ");
 echo ("                                                                                                                                                                             ");
 echo (":::::::::: ::::    ::::  :::::::::  :::        ::::::::  :::   ::: :::::::::: ::::::::::      ::::::::::: :::::::::      :::      ::::::::  :::    ::: :::::::::: :::::::::  ");
@@ -27,7 +28,7 @@ echo ("#+#        #+#       #+# #+#        #+#       #+#    #+#    #+#    #+#   
 echo ("########## ###       ### ###        ########## ########     ###    ########## ##########          ###     ###    ### ###     ###  ########  ###    ### ########## ###    ### ");
 echo ("                                                                                                                                                                             ");
 echo ("                                                                                                                                                                     ver 1.0 ");
-const runSearch = () => {
+const empTrack = () => {
   inquirer
     .prompt([
     {
@@ -44,10 +45,10 @@ const runSearch = () => {
         "Update Employee Manager",
         "exit"
       ],
-      name:"answer"
+      name:"res"
     }
-  ]).then(function(action) {
-      switch (action.answer) {
+  ]).then(function(res) {
+      switch (res.answer) {
         case "View all employees":
           employeeView();
           break;
@@ -98,11 +99,11 @@ const menu = () => {
     ],
     name:"menuResponse"
    }
-  ]).then({function(action){
-    switch(action.menuResponse) {
+  ]).then({function(res){
+    switch(res.menuResponse) {
       // is this what callback hell is?
       case "Run Again?":
-        runSearch(answer);
+        empTrack(answer);
         break;
 
       case "         ":
@@ -110,13 +111,12 @@ const menu = () => {
         break;  
       
       case "Main Menu":
-        runSearch();
+        empTrack();
         break;
 
       case "Exit":
       connection.end();
       console.log("Thanks for using Employee Tracker, Have a nice day!");
-      break;
     }
   }
   })
@@ -137,38 +137,39 @@ const employeeView = (inputs = []) => {
 
         for (var i = 0; i < res.length; i++) {
           console.table(
-            "First Name: " +
-              res[i].first_name +
-              " || Last name: " +
-              res[i].last_name +
-              " || Id: " +
-              res[i].id
+            " | First Name: " + res[i].first_name +
+            " | Last name: " + res[i].last_name +
+            " | Id: " + res[i].id
           );
         }
         menu();
       });
     });
 }
-const departmentView = () => {
+const departmentView = (res) => {
   let query = "SELECT dept_name FROM department";
   connection.query(query, function(err, res) {
     for (var i = 0; i < res.length; i++) {
       console.log(res[i].name);
     }
-    runSearch();
+    empTrack();
   });
 }
-const managerView = () => {
-  let query =
-    "SELECT id, first_name, last_name FROM employee WHERE id IN (SELECT mgr_id FROM employee WHERE mgr_id IS NOT NULL)";
+const managerView = (res) => {
+  let query = "SELECT mgr_id, first_name, last_name FROM employee WHERE mgr_id IN (SELECT mgr_id FROM employee WHERE mgr_id IS NOT NULL)";
   connection.query(query, function(err, res) {
+    
+    if(err) throw err;
+
     for (var i = 0; i < res.length; i++) {
       console.log(
-        res[i].first_name + " " + res[i].last_name + " || Id: " + res[i].id
+        res[i].first_name + " " + 
+        res[i].last_name + " || Id: " + 
+        res[i].id
       );
     }
-    runSearch();
-  });
+  })
+  menu();
 }
 const employeeAdd = () => {
   inquirer
@@ -180,11 +181,12 @@ const employeeAdd = () => {
 
     .then(function(answer) {
       console.log(answer);
-      let str = answer.employeeAdd;
-      let firstAndLastName = str.split(" ");
+      let name = answer.employeeAdd;
+      let firstAndLastName = name.split(" ");
       console.log(firstAndLastName);
       let query = "INSERT INTO employee (first_name, last_name) VALUES ?";
       connection.query(query, [[firstAndLastName]], function(err, res) {
+        if (err) throw err;
         console.log(err);
       });
     });
@@ -197,13 +199,15 @@ const employeeRemove = () => {
       message: "What employee would you like to remove?",
       choices: ["first_name", "last_name"]
     })
-    .then(function(answer) {
+    .then(function() {
       let query = "SELECT first_name FROM employee WHERE ?";
       connection.query(query, function(err, res) {
+        if (err) throw err;
+
         for (var i = 0; i < res.length; i++) {
           console.log(res[i].employeeAdd);
         }
-        runSearch();
+        empTrack();
       });
     });
 }
@@ -215,13 +219,14 @@ const employeeUpdate = () => {
       message: "What would you like to update?",
       choices: ["first_name", "last_name", "role_id", "manager_id"]
     })
-    .then(function(answer) {
+    .then(function() {
       let query = "SELECT name FROM employee WHERE ?";
       connection.query(query, function(err, res) {
+        if (err) throw err;
         for (var i = 0; i < res.length; i++) {
           console.log(res[i].department);
         }
-        runSearch();
+        empTrack();
       });
     });
 }
@@ -232,13 +237,15 @@ const employeeManager = () => {
       type: "input",
       message: "What employee would you like to update the manager for?"
     })
-    .then(function(answer) {
+    .then(function() {
       var query = "SELECT manager_id FROM employee WHERE ?";
       connection.query(query, function(err, res) {
+        if (err) throw err;
+
         for (var i = 0; i < res.length; i++) {
           console.log(res[i].employee);
         }
-        runSearch();
+        empTrack();
       });
     });
 }
