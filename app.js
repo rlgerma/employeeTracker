@@ -1,7 +1,7 @@
 const fs = require('fs');
 const mysql = require('mysql');
 const inquirer = require('inquirer');
-const cTable = require('console.table');
+const ctable = require('console.table');
 const echo = require('node-echo');
 
 const connection = mysql.createConnection({
@@ -28,7 +28,7 @@ echo ("#+#        #+#       #+# #+#        #+#       #+#    #+#    #+#    #+#   
 echo ("########## ###       ### ###        ########## ########     ###    ########## ##########          ###     ###    ### ###     ###  ########  ###    ### ########## ###    ### ");
 echo ("                                                                                                                                                                             ");
 echo ("                                                                                                                                                                     ver 1.0 ");
-const empTrack = () => {
+ function empTrack(){
   inquirer
     .prompt([
     {
@@ -45,10 +45,13 @@ const empTrack = () => {
         "Update Employee Manager",
         "exit"
       ],
-      name:"res"
+      name:"choice"
     }
   ]).then(function(res) {
-      switch (res.answer) {
+    console.log(
+      res.choice
+      );
+      switch (res.choice) {
         case "View all employees":
           employeeView();
           break;
@@ -77,50 +80,44 @@ const empTrack = () => {
           employeeManager();
           break;
 
-        case "exit":
+        case "Quit":
           connection.end();
           break;
       }
-    });
-};
-
-const menu = () => {
-  inquirer
-  .prompt([
-    {
-    type: "list",
-    name: "options",
-    message: "--------------------------------------",
-    choices: [
-      "Run Again?",
-      "         ",
-      "Main Menu",
-      "Exit"
-    ],
-    name:"menuResponse"
-   }
-  ]).then({function(res){
-    switch(res.menuResponse) {
-      // is this what callback hell is?
-      case "Run Again?":
-        empTrack(answer);
-        break;
-
-      case "         ":
-        console.log("");
-        break;  
-      
-      case "Main Menu":
-        empTrack();
-        break;
-
-      case "Exit":
-      connection.end();
-      console.log("Thanks for using Employee Tracker, Have a nice day!");
-    }
-  }
   })
-}
+};
+// menu function for later development
+// function menu(){
+//   inquirer
+//   .prompt([
+//     {
+//     type: "list",
+//     name: "options",
+//     message: "--------------------------------------",
+//     choices: [
+//       "Main Menu",
+//       "         ",
+//       "Exit"
+//     ],
+//     name:"menuResponse"
+//    }
+//   ]).then({function(res){
+//     switch(res.menuResponse) {      
+//       case "Main Menu":
+//         empTrack();
+//         break;
+        
+//       case "         ":
+//         console.log("");
+//         break;
+
+//       case "Exit":
+//       connection.end();
+//       console.log("Thanks for using Employee Tracker, Have a nice day!");
+//     }
+//   }
+//   })
+// }
 
 const employeeView = (inputs = []) => {
   inquirer
@@ -129,21 +126,21 @@ const employeeView = (inputs = []) => {
       type: "input",
       message: "Enter Employee last name to begin search"
     })
-    .then(function(answer) {
+    .then(function(choice) {
       let query = "SELECT first_name, last_name, id FROM employee WHERE ?";
-      connection.query(query, { last_name: answer.employeeView }, function(err,res
+      connection.query(query, { last_name: choice.employeeView }, function(err,res
       ){
         if(err) throw err;
 
         for (var i = 0; i < res.length; i++) {
-          console.table(
+          console.log(
             " | First Name: " + res[i].first_name +
             " | Last name: " + res[i].last_name +
             " | Id: " + res[i].id
           );
         }
-        menu();
       });
+      empTrack()
     });
 }
 const departmentView = (res) => {
@@ -152,7 +149,6 @@ const departmentView = (res) => {
     for (var i = 0; i < res.length; i++) {
       console.log(res[i].name);
     }
-    empTrack();
   });
 }
 const managerView = (res) => {
@@ -176,7 +172,7 @@ const employeeAdd = () => {
     .prompt({
       name: "employeeAdd",
       type: "input",
-      message: ["Enter Employee First then Last Name"]
+      message: "Enter Employee First then Last Name"
     })
 
     .then(function(answer) {
@@ -189,6 +185,7 @@ const employeeAdd = () => {
         if (err) throw err;
         console.log(err);
       });
+      empTrack();
     });
 }
 const employeeRemove = () => {
@@ -197,15 +194,17 @@ const employeeRemove = () => {
       name: "employeeRemove",
       type: "input",
       message: "What employee would you like to remove?",
-      choices: ["first_name", "last_name"]
     })
     .then(function() {
-      let query = "SELECT first_name FROM employee WHERE ?";
-      connection.query(query, function(err, res) {
+      console.log(choice)
+      let query = "DELETE FROM employee WHERE ?";
+      let delId = Number(choice.employeeRemove);
+      console.log(delId);
+      connection.query(query, { id: delId}, function(err, res) {
         if (err) throw err;
 
         for (var i = 0; i < res.length; i++) {
-          console.log(res[i].employeeAdd);
+          console.log(res[i].employeeRemove);
         }
         empTrack();
       });
@@ -213,22 +212,32 @@ const employeeRemove = () => {
 }
 const employeeUpdate = () => {
   inquirer
-    .prompt({
-      name: "employeeUpdate",
-      type: "input",
-      message: "What would you like to update?",
-      choices: ["first_name", "last_name", "role_id", "manager_id"]
-    })
-    .then(function() {
-      let query = "SELECT name FROM employee WHERE ?";
-      connection.query(query, function(err, res) {
-        if (err) throw err;
-        for (var i = 0; i < res.length; i++) {
-          console.log(res[i].department);
-        }
-        empTrack();
+  .prompt({
+    name: "employeeUpdate",
+    type: "input",
+    message: "Enter employee id",
+  })
+  .then(function (choice) {
+    let id = choice.id;
+
+    inquirer
+      .prompt({
+        name: "roleId",
+        type: "input",
+        message: "Enter role id",
+      })
+      .then(function (choice) {
+        let empId = choice.empId;
+
+        let query = "UPDATE employee SET role_id=? WHERE id=?";
+        connection.query(query, [empId, id], function (err, res) {
+          if (err) {
+            console.log(err);
+          }
+          empTrack();
+        });
       });
-    });
+  });
 }
 const employeeManager = () => {
   inquirer
@@ -238,7 +247,7 @@ const employeeManager = () => {
       message: "What employee would you like to update the manager for?"
     })
     .then(function() {
-      var query = "SELECT manager_id FROM employee WHERE ?";
+      let query = "SELECT manager_id FROM employee WHERE ?";
       connection.query(query, function(err, res) {
         if (err) throw err;
 
